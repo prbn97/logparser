@@ -10,23 +10,28 @@ import (
 )
 
 type LogMsg struct {
-	timestamp time.Time
-	userID    int
-	message   string
+	timestamp  time.Time
+	userID     int
+	logType    string
+	logMessage string
 }
 
 // LogParser is a struct that holds the log files and the errors, warns and infos
 type LogParser struct {
-	logFolder string
-	logFiles  []string
-	errors    []LogMsg
-	warns     []LogMsg
-	infos     []LogMsg
+	logFolder   string
+	logFiles    []string
+	logMessages map[string][]LogMsg
 }
 
 func New(logFolder string) *LogParser {
+	logMessages := make(map[string][]LogMsg)
+	logMessages["ERROR"] = make([]LogMsg, 0)
+	logMessages["WARN"] = make([]LogMsg, 0)
+	logMessages["INFO"] = make([]LogMsg, 0)
+
 	return &LogParser{
-		logFolder: logFolder,
+		logFolder:   logFolder,
+		logMessages: logMessages,
 	}
 }
 
@@ -47,20 +52,36 @@ func (parser *LogParser) PrintFiles() {
 }
 
 func (parser *LogParser) PrintErrorLog() {
-	for _, logError := range parser.errors {
-		fmt.Println(logError.timestamp, logError.userID, logError.message)
+	if errorLogs, ok := parser.logMessages["ERROR"]; ok {
+		for _, logMsg := range errorLogs {
+			fmt.Println(logMsg)
+		}
+	} else {
+		fmt.Println("no ERROR log messages ")
 	}
 
 }
+
 func (parser *LogParser) PrintWarnLog() {
-	for _, logWarns := range parser.warns {
-		fmt.Println(logWarns.timestamp, logWarns.userID, logWarns.message)
+	if warnLogs, ok := parser.logMessages["WARN"]; ok {
+		for _, logMsg := range warnLogs {
+			fmt.Println(logMsg)
+		}
+	} else {
+		fmt.Println("no WARN log messages ")
 	}
+
 }
+
 func (parser *LogParser) PrintInfoLog() {
-	for _, logInfo := range parser.infos {
-		fmt.Println(logInfo.timestamp, logInfo.userID, logInfo.message)
+	if infoLogs, ok := parser.logMessages["INFO"]; ok {
+		for _, logMsg := range infoLogs {
+			fmt.Println(logMsg)
+		}
+	} else {
+		fmt.Println("no INFO log messages ")
 	}
+
 }
 
 func ensureDateString(dateString string) (time.Time, error) {
@@ -111,7 +132,7 @@ func ensureDateString(dateString string) (time.Time, error) {
 
 func parseLogLine(line string) (LogMsg, error) {
 	lineSplit := strings.Split(line, " ")
-	if len(lineSplit) < 3 {
+	if len(lineSplit) <= 3 {
 		return LogMsg{}, fmt.Errorf("invalid log line: %s", line)
 	}
 
@@ -125,17 +146,19 @@ func parseLogLine(line string) (LogMsg, error) {
 	if err != nil {
 		return LogMsg{}, fmt.Errorf("invalid user id: %s", lineSplit[1])
 	}
+	//continue
 
-	logMessage := strings.Join(lineSplit[2:], " ")
-	if len(lineSplit[2:]) < 3 {
-		return LogMsg{}, fmt.Errorf("invalid log message: %s", lineSplit[2:])
-
+	logMessage := strings.Join(lineSplit[3:], " ") // hello world!
+	logType := lineSplit[2]                        // INFO
+	if logType != "ERROR" && logType != "INFO" && logType != "WARN" {
+		return LogMsg{}, fmt.Errorf("invalid log type: %s", lineSplit[2])
 	}
 
 	return LogMsg{
-		timestamp: timestamp,
-		userID:    userID,
-		message:   logMessage}, nil
+		timestamp:  timestamp,
+		userID:     userID,
+		logType:    logType,
+		logMessage: logMessage}, nil
 
 }
 
@@ -157,32 +180,35 @@ func (parser *LogParser) ParseLines(fileName string) error {
 		return scanner.Err()
 	}
 
+	// Get []LogMsg of all keys before the for
+	errorLogs := parser.logMessages["ERROR"]
+	warnLogs := parser.logMessages["WARN"]
+	infoLogs := parser.logMessages["WARN"]
+
 	for _, line := range lines {
 
-		lm, err := parseLogLine(line)
+		logMsg, err := parseLogLine(line)
 		if err != nil {
 			return err
 		}
 
-		parser.defineLogMsgType(lm)
+		if logMsg.logType == "ERROR" {
+			errorLogs = append(errorLogs, logMsg)
+		}
+		if logMsg.logType == "WARN" {
+			warnLogs = append(warnLogs, logMsg)
+		}
+		if logMsg.logType == "INFO" {
+			infoLogs = append(infoLogs, logMsg)
+		}
 
 	}
+	// Update o []LogMsg of each log type of the parser
+	parser.logMessages["ERROR"] = errorLogs
+	parser.logMessages["WARN"] = warnLogs
+	parser.logMessages["INFO"] = infoLogs
 
 	return nil
-}
-
-func (parser *LogParser) defineLogMsgType(logMessage LogMsg) {
-	logMsgType := strings.Split(logMessage.message, " ")
-
-	switch logMsgType[0] {
-	case "ERROR":
-		parser.errors = append(parser.errors, logMessage)
-	case "WARN":
-		parser.warns = append(parser.warns, logMessage)
-	case "INFO":
-		parser.infos = append(parser.infos, logMessage)
-
-	}
 }
 
 // func countErrors(lines []string) int {
