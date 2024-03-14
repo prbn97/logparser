@@ -17,5 +17,5 @@ func main() {
 	// lp.PrintErrorLog()
 	// lp.PrintWarnLog()
 	// lp.PrintInfoLog()
-	lp.MostFrequentID("INFO")
+	lp.MostFrequentIDs()
 }

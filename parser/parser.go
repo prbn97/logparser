@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -52,8 +53,8 @@ func (parser *LogParser) PrintFiles() {
 }
 
 func (parser *LogParser) PrintErrorLog() {
-	if errorLogs, ok := parser.logMessages["ERROR"]; ok {
-		for _, logMsg := range errorLogs {
+	if allLogs, ok := parser.logMessages["ERROR"]; ok {
+		for _, logMsg := range allLogs {
 			fmt.Println(logMsg)
 		}
 	} else {
@@ -181,7 +182,7 @@ func (parser *LogParser) ParseLines(fileName string) error {
 	}
 
 	// Get []LogMsg of all keys before the for
-	errorLogs := parser.logMessages["ERROR"]
+	allLogs := parser.logMessages["ERROR"]
 	warnLogs := parser.logMessages["WARN"]
 	infoLogs := parser.logMessages["WARN"]
 
@@ -193,7 +194,7 @@ func (parser *LogParser) ParseLines(fileName string) error {
 		}
 
 		if logMsg.logType == "ERROR" {
-			errorLogs = append(errorLogs, logMsg)
+			allLogs = append(allLogs, logMsg)
 		}
 		if logMsg.logType == "WARN" {
 			warnLogs = append(warnLogs, logMsg)
@@ -204,42 +205,58 @@ func (parser *LogParser) ParseLines(fileName string) error {
 
 	}
 	// Update o []LogMsg of each log type of the parser
-	parser.logMessages["ERROR"] = errorLogs
+	parser.logMessages["ERROR"] = allLogs
 	parser.logMessages["WARN"] = warnLogs
 	parser.logMessages["INFO"] = infoLogs
 
 	return nil
 }
 
-// print the id that appears most in the logs
-func (parser *LogParser) MostFrequentID(logType string) {
+// print the ids that appears most in the logsMessages
+func (parser *LogParser) MostFrequentIDs() {
 
-	var errorsID []int
-	errorLogs := parser.logMessages[logType]
+	var allID []int
+	var allLogs []LogMsg
 
-	// acess each log massage and then save in slice of "id"
-	for _, logError := range errorLogs {
-		errorsID = append(errorsID, logError.userID)
+	for _, logsTypes := range parser.logMessages {
+		allLogs = append(allLogs, logsTypes...)
 	}
 
-	//make a map to put each id as key as the value will be the cont
+	// Extract all IDs from log LogMsgs
+	for _, log := range allLogs {
+		allID = append(allID, log.userID)
+
+	}
+
+	// Make a map to count the frequency of each user ID
 	listID := make(map[int]int)
-	for _, id := range errorsID {
-		listID[id]++
+	for _, id := range allID {
+		listID[id]++ //now we have a map[ID][FrequencyID]
 	}
 
-	fmt.Println(listID)
-
-	mostFrequentID := errorsID[0]
-	maxCount := 0
-	for id, count := range listID {
-		if count > maxCount {
-			mostFrequentID = id
-			maxCount = count
-		}
+	//make a type that receive this values and make a slice of this
+	type ID struct {
+		ID        int
+		Frequency int
+	}
+	var IDlistFrequency []ID
+	//make a for to pass the values to the slice
+	for id, frequency := range listID {
+		IDlistFrequency = append(IDlistFrequency, ID{id, frequency})
 	}
 
-	fmt.Println(mostFrequentID)
+	// fmt.Println(listID)
+	// fmt.Println()
+	// fmt.Println(IDlistFrequency)
+
+	sort.Slice(IDlistFrequency, func(i, j int) bool {
+		return IDlistFrequency[i].Frequency > IDlistFrequency[j].Frequency
+	})
+
+	// Print the IDs with the highest frequencies
+	for _, ID := range IDlistFrequency {
+		fmt.Printf("ID: %d, Frequency: %d\n", ID.ID, ID.Frequency)
+	}
 
 }
 
