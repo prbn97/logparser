@@ -14,7 +14,8 @@ func main() {
 		return
 	}
 
-	lp.PrintErrorLog()
-	lp.PrintWarnLog()
-	lp.PrintInfoLog()
+	// lp.PrintErrorLog()
+	// lp.PrintWarnLog()
+	// lp.PrintInfoLog()
+	lp.MostFrequentID("INFO")
 }

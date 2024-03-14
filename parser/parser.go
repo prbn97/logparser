@@ -211,6 +211,38 @@ func (parser *LogParser) ParseLines(fileName string) error {
 	return nil
 }
 
+// print the id that appears most in the logs
+func (parser *LogParser) MostFrequentID(logType string) {
+
+	var errorsID []int
+	errorLogs := parser.logMessages[logType]
+
+	// acess each log massage and then save in slice of "id"
+	for _, logError := range errorLogs {
+		errorsID = append(errorsID, logError.userID)
+	}
+
+	//make a map to put each id as key as the value will be the cont
+	listID := make(map[int]int)
+	for _, id := range errorsID {
+		listID[id]++
+	}
+
+	fmt.Println(listID)
+
+	mostFrequentID := errorsID[0]
+	maxCount := 0
+	for id, count := range listID {
+		if count > maxCount {
+			mostFrequentID = id
+			maxCount = count
+		}
+	}
+
+	fmt.Println(mostFrequentID)
+
+}
+
 // func countErrors(lines []string) int {
 // 	errorCount := 0
 // 	for _, line := range lines {
