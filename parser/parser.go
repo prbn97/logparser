@@ -50,20 +50,17 @@ func (parser *LogParser) PrintErrorLog() {
 	for _, logError := range parser.errors {
 		fmt.Println(logError.timestamp, logError.userID, logError.message)
 	}
-	fmt.Println("\n")
 
 }
 func (parser *LogParser) PrintWarnLog() {
 	for _, logWarns := range parser.warns {
 		fmt.Println(logWarns.timestamp, logWarns.userID, logWarns.message)
 	}
-	fmt.Println("\n")
 }
 func (parser *LogParser) PrintInfoLog() {
 	for _, logInfo := range parser.infos {
 		fmt.Println(logInfo.timestamp, logInfo.userID, logInfo.message)
 	}
-	fmt.Println("\n")
 }
 
 func ensureDateString(dateString string) (time.Time, error) {
@@ -174,17 +171,17 @@ func (parser *LogParser) ParseLines(fileName string) error {
 	return nil
 }
 
-func (parser *LogParser) defineLogMsgType(lm LogMsg) {
-	logMsgType := strings.Split(lm.message, " ")
+func (parser *LogParser) defineLogMsgType(logMessage LogMsg) {
+	logMsgType := strings.Split(logMessage.message, " ")
 
-	if logMsgType[0] == "ERROR" {
-		parser.errors = append(parser.errors, lm)
-	}
-	if logMsgType[0] == "WARN" {
-		parser.warns = append(parser.warns, lm)
-	}
-	if logMsgType[0] == "INFO" {
-		parser.infos = append(parser.infos, lm)
+	switch logMsgType[0] {
+	case "ERROR":
+		parser.errors = append(parser.errors, logMessage)
+	case "WARN":
+		parser.warns = append(parser.warns, logMessage)
+	case "INFO":
+		parser.infos = append(parser.infos, logMessage)
+
 	}
 }
 
