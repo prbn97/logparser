@@ -50,6 +50,20 @@ func (parser *LogParser) PrintErrorLog() {
 	for _, logError := range parser.errors {
 		fmt.Println(logError.timestamp, logError.userID, logError.message)
 	}
+	fmt.Println("\n")
+
+}
+func (parser *LogParser) PrintWarnLog() {
+	for _, logWarns := range parser.warns {
+		fmt.Println(logWarns.timestamp, logWarns.userID, logWarns.message)
+	}
+	fmt.Println("\n")
+}
+func (parser *LogParser) PrintInfoLog() {
+	for _, logInfo := range parser.infos {
+		fmt.Println(logInfo.timestamp, logInfo.userID, logInfo.message)
+	}
+	fmt.Println("\n")
 }
 
 func ensureDateString(dateString string) (time.Time, error) {
@@ -98,7 +112,6 @@ func ensureDateString(dateString string) (time.Time, error) {
 	return time.Date(year, time.Month(month), day, hour, minute, second, 0, time.UTC), nil
 }
 
-// ParseLogLine parses a log line and returns a LogMsg
 func parseLogLine(line string) (LogMsg, error) {
 	lineSplit := strings.Split(line, " ")
 	if len(lineSplit) < 3 {
@@ -115,7 +128,6 @@ func parseLogLine(line string) (LogMsg, error) {
 	if err != nil {
 		return LogMsg{}, fmt.Errorf("invalid user id: %s", lineSplit[1])
 	}
-	// continue...
 
 	logMessage := strings.Join(lineSplit[2:], " ")
 	if len(lineSplit[2:]) < 3 {
@@ -131,7 +143,7 @@ func parseLogLine(line string) (LogMsg, error) {
 }
 
 func (parser *LogParser) ParseLines(fileName string) error {
-	// open the file
+
 	fp, err := parser.openFile(fileName)
 	if err != nil {
 		return err
@@ -139,7 +151,6 @@ func (parser *LogParser) ParseLines(fileName string) error {
 	defer fp.Close()
 	parser.logFiles = append(parser.logFiles, fileName)
 
-	// read the file
 	var lines []string
 	scanner := bufio.NewScanner(fp)
 	for scanner.Scan() {
@@ -148,7 +159,7 @@ func (parser *LogParser) ParseLines(fileName string) error {
 	if scanner.Err() != nil {
 		return scanner.Err()
 	}
-	// parse the file in []logMsg
+
 	for _, line := range lines {
 
 		lm, err := parseLogLine(line)
@@ -158,16 +169,6 @@ func (parser *LogParser) ParseLines(fileName string) error {
 
 		parser.defineLogMsgType(lm)
 
-		// logMsgType := strings.Split(logMsg.message, " ")
-		// if logMsgType[0] == "ERROR" {
-		// 	parser.errors = append(parser.errors, logMsg)
-		// }
-		// if logMsgType[0] == "WARN" {
-		// 	parser.warns = append(parser.warns, logMsg)
-		// }
-		// if logMsgType[0] == "INFO" {
-		// 	parser.infos = append(parser.infos, logMsg)
-		// }
 	}
 
 	return nil

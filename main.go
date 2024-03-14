@@ -15,4 +15,6 @@ func main() {
 	}
 
 	lp.PrintErrorLog()
+	lp.PrintWarnLog()
+	lp.PrintInfoLog()
 }
