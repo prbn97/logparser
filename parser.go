@@ -1,4 +1,4 @@
-package parser
+package main
 
 import (
 	"bufio"
@@ -24,7 +24,7 @@ type LogParser struct {
 	logMessages map[string][]LogMsg
 }
 
-func New(logFolder string) *LogParser {
+func NewParser(logFolder string) *LogParser {
 	logMessages := make(map[string][]LogMsg)
 	logMessages["ERROR"] = make([]LogMsg, 0)
 	logMessages["WARN"] = make([]LogMsg, 0)
@@ -147,6 +147,7 @@ func parseLogLine(line string) (LogMsg, error) {
 	if err != nil {
 		return LogMsg{}, fmt.Errorf("invalid user id: %s", lineSplit[1])
 	}
+
 	//continue
 
 	logMessage := strings.Join(lineSplit[3:], " ") // hello world!
@@ -249,14 +250,18 @@ func (parser *LogParser) MostFrequentIDs() {
 	// fmt.Println()
 	// fmt.Println(IDlistFrequency)
 
+	for _, ID := range IDlistFrequency {
+		fmt.Printf("ID: %d, Frequency: %d\n", ID.ID, ID.Frequency)
+	}
+
 	sort.Slice(IDlistFrequency, func(i, j int) bool {
 		return IDlistFrequency[i].Frequency > IDlistFrequency[j].Frequency
 	})
 
 	// Print the IDs with the highest frequencies
-	for _, ID := range IDlistFrequency {
-		fmt.Printf("ID: %d, Frequency: %d\n", ID.ID, ID.Frequency)
-	}
+	// for _, ID := range IDlistFrequency {
+	// 	fmt.Printf("ID: %d, Frequency: %d\n", ID.ID, ID.Frequency)
+	// }
 
 }
 
